@@ -9,6 +9,7 @@ app.use(express.json());
 
 // RUTAS
 app.use("/api/usuarios", require("./routes/usuarios"));
+app.use("/api/resenas", require("./routes/resenas"));
 
 app.listen(3000, () => {
     console.log("Servidor corriendo en puerto 3000");
