@@ -8,6 +8,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
@@ -17,6 +18,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -58,7 +60,6 @@ fun AppNavigation(navController: NavHostController) {
         // RUTA 2: PANTALLA DE RESEÑAS (LISTA)
         composable("reviews") {
             // Llamamos a ReviewsScreen (que está en CalisRese.kt)
-            // Le pasamos dos acciones: ir atrás y ir al formulario
             ReviewsScreen(
                 onBack = { navController.popBackStack() },
                 onWriteReview = { navController.navigate("write_review") }
@@ -79,40 +80,66 @@ fun AppNavigation(navController: NavHostController) {
 
 @Composable
 fun MainScreen(navController: NavController) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-            .verticalScroll(rememberScrollState()) // Permite scroll si la pantalla es pequeña
-    ) {
-        TopBar()
+    // CONTENEDOR PRINCIPAL CON FONDO DECORATIVO
+    Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
 
-        Spacer(modifier = Modifier.height(16.dp))
+        // --- CÍRCULOS DECORATIVOS (Mismo estilo que las otras pantallas) ---
 
-        SearchBar()
+        // 1. Círculo Azul (Atrás)
+        Box(
+            modifier = Modifier
+                .size(200.dp)
+                .offset(x = (0).dp, y = (-100).dp)
+                .clip(CircleShape)
+                .background(Color(0xFFB3CDE0).copy(alpha = 0.7f))
+        )
 
-        Spacer(modifier = Modifier.height(24.dp))
+        // 2. Círculo Rosa (Adelante)
+        Box(
+            modifier = Modifier
+                .size(200.dp)
+                .offset(x = (-100).dp, y = (0).dp)
+                .clip(CircleShape)
+                .background(Color(0xFFE6A5B6).copy(alpha = 0.8f))
+        )
 
-        SectionTitle("Acceso Rápido")
+        // --- CONTENIDO DE LA PANTALLA ---
+        // Usamos Column para organizar los elementos verticalmente
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            TopBar()
 
-        QuickAccessCards()
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(24.dp))
+            SearchBar()
 
-        SectionTitle("Árbitros mejor calificados cerca de ti")
+            Spacer(modifier = Modifier.height(24.dp))
 
-        // Al hacer clic, navegamos a la lista de reseñas ("reviews")
-        HighlightedRefereesCard { navController.navigate("reviews") }
+            SectionTitle("Acceso Rápido")
 
-        Spacer(modifier = Modifier.height(24.dp))
+            QuickAccessCards()
 
-        SectionTitle("Recursos y Tips")
+            Spacer(modifier = Modifier.height(24.dp))
 
-        ResourcesTipsCard()
+            SectionTitle("Árbitros calificados")
 
-        Spacer(modifier = Modifier.height(40.dp)) // Espacio final
+            // Al hacer clic, navegamos a la lista de reseñas ("reviews")
+            HighlightedRefereesCard { navController.navigate("reviews") }
 
-        BottomNavigationBar()
+            Spacer(modifier = Modifier.height(24.dp))
+
+            SectionTitle("Recursos y Tips")
+
+            ResourcesTipsCard()
+
+            Spacer(modifier = Modifier.height(40.dp)) // Espacio final
+
+            BottomNavigationBar()
+        }
     }
 }
 
@@ -128,13 +155,14 @@ fun TopBar() {
         Text(
             text = "RedFeree",
             fontSize = 22.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = Color.Black // Aseguramos contraste sobre el fondo claro
         )
 
         Row {
-            Icon(imageVector = Icons.Default.Person, contentDescription = "Perfil")
+            Icon(imageVector = Icons.Default.Person, contentDescription = "Perfil", tint = Color.Black)
             Spacer(modifier = Modifier.width(12.dp))
-            Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notificaciones")
+            Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notificaciones", tint = Color.Black)
         }
     }
 }
@@ -146,7 +174,12 @@ fun SearchBar() {
         onValueChange = {},
         placeholder = { Text("¿Necesitas un árbitro?") },
         leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        // Añadimos fondo blanco semitransparente para que resalte sobre los círculos
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = Color.White.copy(alpha = 0.8f),
+            unfocusedContainerColor = Color.White.copy(alpha = 0.8f)
+        )
     )
 }
 
@@ -156,7 +189,8 @@ fun SectionTitle(title: String) {
         text = title,
         fontSize = 18.sp,
         fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(vertical = 8.dp)
+        modifier = Modifier.padding(vertical = 8.dp),
+        color = Color.Black
     )
 }
 
@@ -168,7 +202,9 @@ fun QuickAccessCards() {
             modifier = Modifier
                 .weight(1f)
                 .height(150.dp)
-                .padding(4.dp)
+                .padding(4.dp),
+            // Hacemos las tarjetas un poco traslúcidas o con color sólido para diseño
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
         ) {
             Column(
                 modifier = Modifier.padding(12.dp),
@@ -183,13 +219,14 @@ fun QuickAccessCards() {
             modifier = Modifier
                 .weight(1f)
                 .height(150.dp)
-                .padding(4.dp)
+                .padding(4.dp),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
         ) {
             Column(
                 modifier = Modifier.padding(12.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Historial de partidos", fontWeight = FontWeight.Medium)
+                Text("Historial", fontWeight = FontWeight.Medium)
                 Text("Ver todos tus partidos", fontWeight = FontWeight.Bold)
             }
         }
@@ -202,13 +239,14 @@ fun HighlightedRefereesCard(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp)
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFE8EAF6)) // Un azul muy suave
     ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            Text("Árbitros destacados", fontWeight = FontWeight.Bold)
+            Text("Ver Reseñas de Nuestros Árbitros", fontWeight = FontWeight.Bold, color = Color(0xFF3F51B5))
         }
     }
 }
@@ -218,7 +256,8 @@ fun ResourcesTipsCard() {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .height(150.dp)
+            .height(150.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
     ) {
         Column(
             modifier = Modifier
@@ -234,18 +273,22 @@ fun ResourcesTipsCard() {
 
 @Composable
 fun BottomNavigationBar() {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(Color(0xFFF0F0F0))
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly
+    Surface(
+        shadowElevation = 8.dp, // Sombra para separar del contenido
+        color = Color(0xFFF0F0F0)
     ) {
-        Text("Inicio")
-        Text("Búsqueda")
-        Text("Contratar")
-        Text("Mis Partidos")
-        Text("Más")
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            Text("Inicio", fontWeight = FontWeight.Bold)
+            Text("Búsqueda")
+            Text("Contratar")
+            Text("Mis Partidos")
+            Text("Más")
+        }
     }
 }
 
