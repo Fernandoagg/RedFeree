@@ -4,6 +4,10 @@
     <option name="MigrateToGradleLocalJavaHome">
       <set>
         <option value="$PROJECT_DIR$" />
+<<<<<<< Updated upstream
+=======
+        <option value="$PROJECT_DIR$" />
+>>>>>>> Stashed changes
       </set>
     </option>
   </component>
