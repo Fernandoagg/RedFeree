@@ -7,6 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
@@ -27,35 +29,53 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.redferee.ui.theme.RedFereeTheme
 
-// --- ACTIVITY PRINCIPAL ---
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        enableEdgeToEdge() // Activa el diseño de borde a borde
         setContent {
             RedFereeTheme {
-                // Configuración de la navegación
-                val navController: NavHostController = rememberNavController()
-                NavHost(navController = navController, startDestination = "main") {
-
-                    // Ruta 1: Home (MainScreen)
-                    composable("main") {
-                        MainScreen(navController)
-                    }
-
-                    // Ruta 2: Reseñas (ReviewsScreen desde CalisRese.kt)
-                    composable("reviews") {
-                        // Llamamos a la función que está en CalisRese.kt
-                        // Pasamos una lambda para que al dar 'Atrás', el navController saque esta pantalla de la pila
-                        ReviewsScreen(onBack = { navController.popBackStack() })
-                    }
-                }
+                // Creamos el controlador de navegación
+                val navController = rememberNavController()
+                // Iniciamos la navegación
+                AppNavigation(navController)
             }
         }
     }
 }
 
-// --- PANTALLA PRINCIPAL (HOME) ---
+// --- CONFIGURACIÓN DE NAVEGACIÓN ---
+
+@Composable
+fun AppNavigation(navController: NavHostController) {
+    NavHost(navController = navController, startDestination = "main") {
+
+        // RUTA 1: PANTALLA PRINCIPAL (HOME)
+        composable("main") {
+            MainScreen(navController)
+        }
+
+        // RUTA 2: PANTALLA DE RESEÑAS (LISTA)
+        composable("reviews") {
+            // Llamamos a ReviewsScreen (que está en CalisRese.kt)
+            // Le pasamos dos acciones: ir atrás y ir al formulario
+            ReviewsScreen(
+                onBack = { navController.popBackStack() },
+                onWriteReview = { navController.navigate("write_review") }
+            )
+        }
+
+        // RUTA 3: PANTALLA DE ESCRIBIR RESEÑA (FORMULARIO)
+        composable("write_review") {
+            // Llamamos a WriteReviewScreen (que está en WriteReviewScreen.kt)
+            WriteReviewScreen(
+                onBack = { navController.popBackStack() }
+            )
+        }
+    }
+}
+
+// --- PANTALLA PRINCIPAL (UI) ---
 
 @Composable
 fun MainScreen(navController: NavController) {
@@ -63,6 +83,7 @@ fun MainScreen(navController: NavController) {
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .verticalScroll(rememberScrollState()) // Permite scroll si la pantalla es pequeña
     ) {
         TopBar()
 
@@ -80,7 +101,7 @@ fun MainScreen(navController: NavController) {
 
         SectionTitle("Árbitros mejor calificados cerca de ti")
 
-        // Al hacer clic en esta tarjeta, navegamos a la ruta "reviews"
+        // Al hacer clic, navegamos a la lista de reseñas ("reviews")
         HighlightedRefereesCard { navController.navigate("reviews") }
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -89,13 +110,13 @@ fun MainScreen(navController: NavController) {
 
         ResourcesTipsCard()
 
-        Spacer(modifier = Modifier.weight(1f))
+        Spacer(modifier = Modifier.height(40.dp)) // Espacio final
 
         BottomNavigationBar()
     }
 }
 
-// --- COMPONENTES DE LA PANTALLA PRINCIPAL ---
+// --- COMPONENTES VISUALES ---
 
 @Composable
 fun TopBar() {
@@ -168,7 +189,7 @@ fun QuickAccessCards() {
                 modifier = Modifier.padding(12.dp),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Historial", fontWeight = FontWeight.Medium)
+                Text("Historial de partidos", fontWeight = FontWeight.Medium)
                 Text("Ver todos tus partidos", fontWeight = FontWeight.Bold)
             }
         }
@@ -181,13 +202,13 @@ fun HighlightedRefereesCard(onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp)
-            .clickable(onClick = onClick) // Hacemos la tarjeta clicable
+            .clickable(onClick = onClick)
     ) {
         Box(
             contentAlignment = Alignment.Center,
             modifier = Modifier.fillMaxSize()
         ) {
-            Text("Árbitros destacados (Ver Reseñas)", fontWeight = FontWeight.Bold)
+            Text("Árbitros destacados", fontWeight = FontWeight.Bold)
         }
     }
 }

@@ -7,6 +7,7 @@ const db = require("../config/db");
 // Endpoint: POST /api/resenas
 // =========================================================
 router.post("/calificar", (req, res) => {
+    console.log("Datos recibidos desde Android:", req.body); 
     const { arbitroid, usuarioid, estrellas, texto } = req.body; 
     
     // Validación de datos esenciales

@@ -4,12 +4,9 @@ import android.util.Log
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
-/**
- * URL Base de tu API de Express.
- */
+// Asegúrate de que esta IP sea correcta para tu emulador (10.0.2.2)
 private const val BASE_URL = "http://10.0.2.2:3000/"
 
-// Singleton para inicializar Retrofit
 object RetrofitClient {
     private val retrofit = Retrofit.Builder()
         .baseUrl(BASE_URL)
@@ -21,30 +18,59 @@ object RetrofitClient {
     }
 }
 
-/**
- * Repositorio que maneja la lógica de la llamada API (GET /api/resenas).
- */
 class ReviewApiRepository {
     private val apiService = RetrofitClient.apiService
 
+    // FUNCIÓN 1: Obtener todas las reseñas (GET)
     suspend fun fetchAllReviews(): Result<List<Review>> {
         return try {
             val response = apiService.getReviews()
 
-            if (response.isSuccessful && response.body() != null && response.body()!!.status == "ok") {
-                // Éxito: devuelve la lista de reseñas
-                val apiResponse = response.body()!!
-                Log.d("API", "Reseñas cargadas: ${apiResponse.count}")
-                Result.success(apiResponse.reviews)
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!.reviews)
             } else {
-                // Fallo en la respuesta de la API o JSON no esperado
-                val errorBody = response.errorBody()?.string() ?: "Error desconocido"
-                Log.e("API", "Fallo al obtener reseñas: ${response.code()} - $errorBody")
-                Result.failure(Exception("Fallo en la API: Código ${response.code()}"))
+                val errorMsg = response.errorBody()?.string() ?: "Error desconocido"
+                Log.e("API", "Error fetching reviews: $errorMsg")
+                Result.failure(Exception("Error API: ${response.code()}"))
             }
         } catch (e: Exception) {
-            // Error de conexión (Ej: servidor Express apagado o URL incorrecta)
-            Log.e("API", "Error de conexión/parsing. URL: ${BASE_URL}", e)
+            Log.e("API", "Exception fetching reviews", e)
+            Result.failure(e)
+        }
+    }
+
+    // FUNCIÓN 2: Obtener lista de árbitros (GET)
+    suspend fun fetchReferees(): Result<List<Referee>> {
+        return try {
+            val response = apiService.getReferees()
+
+            if (response.isSuccessful && response.body() != null) {
+                Result.success(response.body()!!)
+            } else {
+                val errorMsg = response.errorBody()?.string() ?: "Error desconocido"
+                Log.e("API", "Error fetching referees: $errorMsg")
+                Result.failure(Exception("Error al cargar árbitros"))
+            }
+        } catch (e: Exception) {
+            Log.e("API", "Exception fetching referees", e)
+            Result.failure(e)
+        }
+    }
+
+    // FUNCIÓN 3: Subir una reseña (POST)
+    suspend fun submitReview(request: ReviewRequest): Result<String> {
+        return try {
+            val response = apiService.submitReview(request)
+
+            if (response.isSuccessful) {
+                Result.success("Reseña subida con éxito")
+            } else {
+                val errorMsg = response.errorBody()?.string() ?: "Error desconocido"
+                Log.e("API", "Error submitting review: $errorMsg")
+                Result.failure(Exception("Error al subir: ${response.code()}"))
+            }
+        } catch (e: Exception) {
+            Log.e("API", "Exception submitting review", e)
             Result.failure(e)
         }
     }

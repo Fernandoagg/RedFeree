@@ -18,7 +18,7 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
 
-        <!-- SOLO DECLARAMOS MainActivity COMO LA ACTIVIDAD PRINCIPAL -->
+        <!-- DECLARAMOS MainActivity COMO LA ACTIVIDAD PRINCIPAL -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -29,8 +29,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <!-- Ya NO incluimos CalisReseActivity porque ese archivo ya no existe -->
 
     </application>
 

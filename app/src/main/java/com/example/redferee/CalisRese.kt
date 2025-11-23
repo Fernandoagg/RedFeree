@@ -1,29 +1,29 @@
 package com.example.redferee
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.redferee.ui.theme.RedFereeTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-// --- COMPONENTES REUTILIZABLES DE UI ---
+// --- COMPONENTES REUTILIZABLES ---
 
 @Composable
 fun RatingStars(rating: Int) {
@@ -46,7 +46,7 @@ fun ReviewItem(review: Review) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant) // Color suave para la tarjeta
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -56,26 +56,22 @@ fun ReviewItem(review: Review) {
                 Text(
                     text = review.NombreArbi,
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
                 )
                 RatingStars(review.Cali)
             }
-
             Spacer(modifier = Modifier.height(8.dp))
-
             Row {
                 Text("Usuario", style = MaterialTheme.typography.bodySmall, color = Color.Gray)
                 Spacer(modifier = Modifier.width(4.dp))
-                Text(review.userName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface)
+                Text(review.userName, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurface, fontWeight = FontWeight.Medium)
                 Spacer(modifier = Modifier.width(16.dp))
-                // Mostrar fecha tal cual viene de la API (o formatearla si prefieres)
                 Text(review.tiempo.take(10), style = MaterialTheme.typography.bodySmall, color = Color.Gray)
             }
-
             Spacer(modifier = Modifier.height(8.dp))
-
-            Text("Reseña:", style = MaterialTheme.typography.bodyMedium)
-            Text(review.Resena, style = MaterialTheme.typography.bodyMedium, maxLines = 3)
+            Text("Reseña:", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
+            Text(review.Resena, style = MaterialTheme.typography.bodyMedium)
         }
     }
 }
@@ -84,15 +80,18 @@ fun ReviewItem(review: Review) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ReviewsScreen(onBack: () -> Unit) {
-    // 1. Estados para almacenar los datos
+fun ReviewsScreen(
+    onBack: () -> Unit,
+    onWriteReview: () -> Unit
+) {
+    // Estados
     var reviews by remember { mutableStateOf(emptyList<Review>()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val repository = remember { ReviewApiRepository() }
 
-    // 2. Carga de datos
+    // Carga de datos
     LaunchedEffect(Unit) {
         val result = withContext(Dispatchers.IO) {
             repository.fetchAllReviews()
@@ -105,16 +104,39 @@ fun ReviewsScreen(onBack: () -> Unit) {
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        // Fondo Decorativo
-        Box(modifier = Modifier.size(150.dp).offset((-30).dp, (-30).dp).clip(CircleShape).background(Color(0x003159).copy(alpha = 0.5f)))
-        Box(modifier = Modifier.size(150.dp).offset((-80).dp, 40.dp).clip(CircleShape).background(Color(0xFF203A).copy(alpha = 0.5f)))
+    // CONTENEDOR PRINCIPAL (BOX) PARA EL FONDO
+    Box(modifier = Modifier.fillMaxSize().background(Color.White)) {
+
+        // --- CÍRCULOS DECORATIVOS ---
+
+        // 1. Círculo Azul (Más grande y atrás)
+        Box(
+            modifier = Modifier
+                .size(200.dp) // Tamaño grande
+                .offset(x = (0).dp, y = (-100).dp) // Desplazado hacia arriba-izquierda
+                .clip(CircleShape)
+                .background(Color(0xFFB3CDE0).copy(alpha = 0.9f)) // Azul claro semitransparente
+        )
+
+        // 2. Círculo Rojo/Rosa (Más pequeño y superpuesto)
+        Box(
+            modifier = Modifier
+                .size(200.dp) // Tamaño mediano
+                .offset(x = (-100).dp, y = (0).dp) // Desplazado más abajo
+                .clip(CircleShape)
+                .background(Color(0xFFE6A5B6).copy(alpha = 0.7f)) // Rosa semitransparente
+        )
+
+        // --- CONTENIDO DE LA PANTALLA (Scaffold Transparente) ---
 
         Scaffold(
+            // Hacemos el fondo transparente para ver los círculos
             containerColor = Color.Transparent,
+
             topBar = {
                 TopAppBar(
                     title = { Text("Calificaciones y Reseñas") },
+                    // Barra transparente
                     colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent),
                     navigationIcon = {
                         IconButton(onClick = onBack) {
@@ -122,10 +144,36 @@ fun ReviewsScreen(onBack: () -> Unit) {
                         }
                     }
                 )
+            },
+            bottomBar = {
+                Surface(
+                    color = Color.Transparent,
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Button(
+                        onClick = onWriteReview,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        // Color del botón (Azul oscuro para contraste)
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4F5D75))
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text(
+                            text = "Escribir Reseña",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                }
             }
         ) { paddingValues ->
 
-            // 3. Lógica de UI basada en el estado
             if (isLoading) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                     CircularProgressIndicator()
@@ -136,12 +184,12 @@ fun ReviewsScreen(onBack: () -> Unit) {
                 }
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
                     contentPadding = paddingValues,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    verticalArrangement = Arrangement.spacedBy(12.dp) // Un poco más de espacio entre tarjetas
                 ) {
-                    // AQUÍ ESTÁ LA CORRECCIÓN CLAVE:
-                    // Usamos 'items(reviews)' para iterar sobre la lista real de la API.
                     items(reviews) { review ->
                         ReviewItem(review)
                     }
@@ -151,24 +199,10 @@ fun ReviewsScreen(onBack: () -> Unit) {
     }
 }
 
-// --- ACTIVITY ---
-
-class CalisReseActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            RedFereeTheme {
-                ReviewsScreen(onBack = {})
-            }
-        }
-    }
-}
-
 @Preview(showBackground = true)
 @Composable
 fun ReviewsScreenPreview() {
     RedFereeTheme {
-        ReviewsScreen(onBack = {})
+        ReviewsScreen(onBack = {}, onWriteReview = {})
     }
 }
