@@ -71,6 +71,9 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
+    
+    // ✅ FIX: Material Icons Extended (Usamos string directo para evitar error de alias)
+    implementation("androidx.compose.material:material-icons-extended:1.6.8") 
 
     // --- UI CLÁSICA (XML/Views) ---
     implementation(libs.androidx.appcompat)
@@ -80,10 +83,10 @@ dependencies {
     // --- NAVEGACIÓN ---
     implementation(libs.androidx.navigation.compose)
 
-    // --- RED Y API (Retrofit) ---
+    // --- RED Y API (Retrofit y Coroutines) ---
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
-    implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.coroutines.android) // Coroutines ya está aquí.
 
     // --- TESTING & DEBUG ---
     testImplementation(libs.junit)

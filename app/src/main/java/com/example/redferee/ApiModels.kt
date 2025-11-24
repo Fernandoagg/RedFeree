@@ -3,7 +3,35 @@ package com.example.redferee
 import com.google.gson.annotations.SerializedName
 
 // ==========================================
-// 1. MODELOS DE HISTORIAL (F3)
+// 1. MODELOS DE AUTENTICACIÓN (LOGIN/REGISTER - F1)
+// ==========================================
+data class LoginRequest(
+    @SerializedName("email") val email: String,
+    @SerializedName("password") val password: String
+)
+
+data class LoginResponse(
+    val nombre: String,
+    val email: String,
+    val password: String,
+    val tipo: String // o los campos que devuelva tu backend al hacer login
+)
+
+data class RegisterRequest(
+    @SerializedName("nombre") val nombre: String,
+    @SerializedName("email") val email: String,
+    @SerializedName("password") val password: String,
+    @SerializedName("tipo") val tipo: String = "usuario"
+)
+
+data class RegisterResponse(
+    val status: String,
+    val message: String,
+    @SerializedName("id_insertado") val userId: Int? = null
+)
+
+// ==========================================
+// 2. MODELOS DE HISTORIAL (F3)
 // ==========================================
 data class PartidoBackend(
     val id: Int,
@@ -15,7 +43,29 @@ data class PartidoBackend(
 )
 
 // ==========================================
-// 2. MODELOS DE RESEÑAS (F4)
+// 3. MODELOS DE CREAR PARTIDO (F2)
+// ==========================================
+data class EquipoArbitro(
+    val id: Int,
+    val nombre: String,
+    val lider: String?,
+    val reseñasCount: Int = 0,
+    val precio: String
+)
+
+data class PartidoRequest(
+    val nombreArbitro: String,
+    val deporte: String,
+    val precio: String
+)
+
+data class PartidoResponse(
+    val message: String,
+    val id: Int
+)
+
+// ==========================================
+// 4. MODELOS DE RESEÑAS Y RESPUESTA GENERAL (F4)
 // ==========================================
 data class Review(
     val NombreArbi: String,
@@ -40,34 +90,11 @@ data class ReviewRequest(
 data class PostResponse(
     val status: String,
     val message: String,
-    val id_insertado: Int? = null
+    @SerializedName("id_insertado") val idInsertado: Int? = null
 )
 
 data class ApiResponse(
     val status: String,
     val count: Int,
     val reviews: List<Review>
-)
-
-// ==========================================
-// 3. MODELOS DE CREAR PARTIDO (F2 - NUEVO)
-// ==========================================
-data class EquipoArbitro(
-    val id: Int,
-    val nombre: String,
-    val lider: String?,
-    val reseñasCount: Int = 0,
-    val precio: String
-)
-
-data class PartidoRequest(
-    val nombreArbitro: String,
-    val deporte: String,
-    val precio: String
-)
-
-// Respuesta al agendar (Backend devuelve message e id)
-data class PartidoResponse(
-    val message: String,
-    val id: Int
 )

@@ -8,6 +8,22 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 
+// --- IMPORTS INTERNOS FALTANTES (¡AGREGADOS!) ---
+// La compilación fallaba porque no podía ver estas clases
+import com.example.redferee.PartidoBackend
+import com.example.redferee.ApiResponse
+import com.example.redferee.Referee
+import com.example.redferee.ReviewRequest
+import com.example.redferee.PostResponse
+import com.example.redferee.EquipoArbitro
+import com.example.redferee.PartidoRequest
+import com.example.redferee.PartidoResponse
+import com.example.redferee.RegisterRequest
+import com.example.redferee.RegisterResponse
+import com.example.redferee.LoginRequest
+import com.example.redferee.LoginResponse
+
+
 interface ApiService {
 
     // --- HISTORIAL ---
@@ -24,13 +40,19 @@ interface ApiService {
     @POST("api/resenas/calificar")
     suspend fun submitReview(@Body request: ReviewRequest): Response<PostResponse>
 
-    // --- CREAR PARTIDO (NUEVO - F2) ---
-    // Nota: Ajusta la ruta si tu backend no usa "api/"
+    // --- CREAR PARTIDO ---
     @GET("api/lista-arbitros")
     suspend fun obtenerListaEquipos(): List<EquipoArbitro>
 
     @POST("api/partidos")
     suspend fun guardarPartido(@Body request: PartidoRequest): PartidoResponse
+
+    // --- AUTENTICACIÓN (LOGIN/REGISTER) ---
+    @POST("api/usuarios/register")
+    suspend fun registerUser(@Body request: RegisterRequest): Response<RegisterResponse>
+
+    @POST("api/usuarios/login")
+    suspend fun loginUser(@Body request: LoginRequest): Response<LoginResponse>
 }
 
 object RetrofitClient {
