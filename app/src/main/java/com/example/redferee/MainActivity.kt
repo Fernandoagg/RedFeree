@@ -156,7 +156,7 @@ fun MainScreen(navController: NavController) {
 
             Spacer(modifier = Modifier.height(40.dp)) // Espacio final
 
-            BottomNavigationBar()
+
         }
     }
 }
@@ -249,7 +249,7 @@ fun QuickAccessCards() {
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
                 Text("Próximo partido", fontWeight = FontWeight.Medium)
-                Text("Fútbol - Sábado, 2pm", fontWeight = FontWeight.Bold)
+                Text("Agenda tu proximo partido", fontWeight = FontWeight.Bold)
             }
         }
 
@@ -311,31 +311,12 @@ fun ResourcesTipsCard() {
             verticalArrangement = Arrangement.Center
         ) {
             Text("Consejos de arbitraje", fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Text("Descubre más", fontSize = 14.sp)
+            Text("Proximamente...", fontSize = 14.sp)
         }
     }
 }
 
-@Composable
-fun BottomNavigationBar() {
-    Surface(
-        shadowElevation = 8.dp,
-        color = Color(0xFFF0F0F0)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            Text("Inicio", fontWeight = FontWeight.Bold)
-            Text("Búsqueda")
-            Text("Contratar")
-            Text("Mis Partidos")
-            Text("Más")
-        }
-    }
-}
+
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
