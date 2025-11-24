@@ -1,15 +1,14 @@
 const express = require('express');
 const router = express.Router();
-// Dejamos solo una importación de la base de datos
 const db = require('../config/db');
 
 // ==========================================
-// RUTA 1: AGENDAR PARTIDO (POST) - (Tu código)
-// URL: http://localhost:3000/api/partidos
+// RUTA 1: AGENDAR PARTIDO (POST)
 // ==========================================
 router.post('/', (req, res) => {
     const { nombreArbitro, deporte, precio } = req.body;
 
+    // Guardamos en las columnas de texto que creamos
     const sql = 'INSERT INTO partidos (arbitro_nombre, deporte, precio) VALUES (?, ?, ?)';
     
     db.query(sql, [nombreArbitro, deporte, precio], (err, result) => {
@@ -22,16 +21,27 @@ router.post('/', (req, res) => {
 });
 
 // ==========================================
-// RUTA 2: VER HISTORIAL (GET) - (Código del compañero)
-// URL: http://localhost:3000/api/partidos
+// RUTA 2: VER HISTORIAL (GET) - ¡CORREGIDO!
 // ==========================================
 router.get('/', (req, res) => {
-    // OJO: Tu compañero está haciendo un JOIN con 'arbitroId'.
-    // Asegúrate de que tu tabla 'partidos' tenga esa columna o si usa 'arbitro_nombre'.
+    // AQUÍ ESTÁ EL TRUCO:
+    // Usamos "AS" para cambiar el nombre de la columna de SQL
+    // al nombre exacto que espera tu variable en Kotlin.
+    //
+    // base de datos (arbitro_nombre) -> Kotlin espera (nombreArbitro)
+    // base de datos (precio)         -> Kotlin espera (costo)
+
     const sql = `
-        SELECT p.*, u.nombre as nombreArbitro 
-        FROM partidos p 
-        LEFT JOIN usuarios u ON p.arbitroId = u.id
+        SELECT 
+            id, 
+            fecha, 
+            ubicacion, 
+            deporte, 
+            estado,
+            arbitro_nombre AS nombreArbitro, 
+            precio AS costo
+        FROM partidos
+        ORDER BY id DESC
     `;
 
     db.query(sql, (err, results) => {
@@ -39,9 +49,9 @@ router.get('/', (req, res) => {
             console.error("Error al obtener partidos:", err);
             return res.status(500).send("Error en el servidor");
         }
+        // Enviamos los resultados con los nombres corregidos
         res.json(results);
     });
 });
 
-// Importante: Esto siempre va al final
 module.exports = router;

@@ -1,6 +1,6 @@
 package com.example.redferee
 
-import android.util.Log // Importante para ver errores en Logcat
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -9,10 +9,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -23,15 +26,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope // Importante para las corrutinas
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.launch // Importante para lanzar la petición asíncrona
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 
 // ---------------------------------------------------------
-// 1. MODELO DE DATOS Y VIEWMODEL (LÓGICA CONECTADA A NODE.JS)
+// 1. MODELO DE DATOS Y VIEWMODEL
 // ---------------------------------------------------------
 
 data class Partido(
@@ -51,26 +51,25 @@ class HistorialViewModel : ViewModel() {
     fun obtenerPartidosDelBackend() {
         viewModelScope.launch {
             try {
-                // 1. LLAMADA AL SERVIDOR (Node.js)
+                // LLAMADA AL SERVIDOR (Node.js)
+                // Asegúrate de que en RetrofitClient la ruta sea @GET("api/partidos")
                 val respuestaBackend = RetrofitClient.apiService.obtenerPartidos()
 
-                // 2. MAPEO: Convertimos los datos JSON a tu modelo visual
+                // MAPEO: Convertimos los datos JSON a tu modelo visual
                 listaPartidos = respuestaBackend.map { item ->
                     Partido(
                         id = item.id,
-                        // Si el backend no manda nombre (null), ponemos uno genérico
-                        nombreArbitro = item.nombreArbitro ?: "Árbitro #${item.id}",
-                        // Si el backend no manda costo (null), ponemos "Pendiente"
+                        // Si el backend no manda nombre, ponemos uno por defecto
+                        nombreArbitro = item.nombreArbitro ?: "Árbitro asignado",
+                        // Si el backend no manda costo, ponemos "Pendiente"
                         costo = item.costo ?: "Pendiente"
                     )
                 }
             } catch (e: Exception) {
-                // Si falla, lo imprimimos en la consola de "Logcat" abajo
                 Log.e("API_ERROR", "Error conectando a Node: ${e.message}")
-
-                // Opcional: Mostrar un error visual en la lista para saber qué pasó
+                // Mostrar error visual en la lista si falla la red
                 listaPartidos = listOf(
-                    Partido(0, "Error de Conexión", "Check Server")
+                    Partido(0, "Error de Conexión", "Revisa tu red")
                 )
             }
         }
@@ -78,24 +77,22 @@ class HistorialViewModel : ViewModel() {
 }
 
 // ---------------------------------------------------------
-// 2. CONSTANTES DE DISEÑO (TUS COLORES)
+// 2. CONSTANTES DE DISEÑO
 // ---------------------------------------------------------
 private val BlueDark = Color(0xFF0C2847)
 private val RedAccent = Color(0xFFD33A35)
 private val LightGrayBg = Color(0xFFE8ECEF)
 
 // ---------------------------------------------------------
-// 3. PANTALLA PRINCIPAL (VISUAL IGUAL QUE ANTES)
+// 3. PANTALLA PRINCIPAL
 // ---------------------------------------------------------
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HistorialPartidosScreen(
     onBack: () -> Unit,
-    // Inyectamos el ViewModel aquí automáticamente
     viewModel: HistorialViewModel = viewModel()
 ) {
-    // Obtenemos la lista viva del ViewModel (que ahora viene de Internet)
     val partidos = viewModel.listaPartidos
 
     Column {
@@ -112,7 +109,7 @@ fun HistorialPartidosScreen(
             }
         )
 
-        // Contenido principal con Fondo y Decoración
+        // Contenido principal con Fondo
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -121,18 +118,18 @@ fun HistorialPartidosScreen(
             // --- DECORACIÓN DE FONDO ---
             Box(
                 modifier = Modifier
-                    .size(160.dp)
-                    .offset(x = (-40).dp, y = (-40).dp)
+                    .size(200.dp)
+                    .offset(x = (0).dp, y = (-100).dp)
                     .clip(CircleShape)
-                    .background(Color(0x330C2847))
+                    .background(Color(0xFFE6A5B6).copy(alpha = 0.7f))
             )
 
             Box(
                 modifier = Modifier
-                    .size(180.dp)
-                    .offset(x = (250).dp, y = (-60).dp)
+                    .size(200.dp)
+                    .offset(x = (-100).dp, y = (0).dp)
                     .clip(CircleShape)
-                    .background(Color(0x33D33A35))
+                    .background(Color(0xFFB3CDE0).copy(alpha = 0.9f))
             )
 
             // --- LISTA DINÁMICA ---
@@ -144,23 +141,21 @@ fun HistorialPartidosScreen(
                 contentPadding = PaddingValues(top = 20.dp, bottom = 20.dp)
             ) {
 
-                // SECCIÓN A: Espaciador inicial
-                item {
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
+                // Espaciador inicial
+                item { Spacer(modifier = Modifier.height(20.dp)) }
 
-                // SECCIÓN B: La lista de árbitros (Viene de Node.js)
+                // Lista de partidos
                 items(partidos) { partido ->
                     RefereeCard(name = partido.nombreArbitro, price = partido.costo)
                     Spacer(modifier = Modifier.height(18.dp))
                 }
 
-                // SECCIÓN C: El Footer (Logo y Paginación)
+                // Footer (Logo y Paginación)
                 item {
                     Spacer(modifier = Modifier.height(20.dp))
 
                     Image(
-                        painter = painterResource(id = R.drawable.redfere),
+                        painter = painterResource(id = R.drawable.redfere), // Asegúrate de tener esta imagen o cambia el nombre
                         contentDescription = "Logo",
                         modifier = Modifier
                             .height(150.dp)
@@ -170,9 +165,7 @@ fun HistorialPartidosScreen(
 
                     Spacer(modifier = Modifier.height(10.dp))
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(text = "◀", fontSize = 28.sp, color = BlueDark)
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(
@@ -184,7 +177,6 @@ fun HistorialPartidosScreen(
                         Spacer(modifier = Modifier.width(12.dp))
                         Text(text = "▶", fontSize = 28.sp, color = BlueDark)
                     }
-
                     Spacer(modifier = Modifier.height(20.dp))
                 }
             }
@@ -193,7 +185,7 @@ fun HistorialPartidosScreen(
 }
 
 // ---------------------------------------------------------
-// 4. TU TARJETA PERSONALIZADA (ESTILO)
+// 4. TARJETA INDIVIDUAL (Con corrección de precio)
 // ---------------------------------------------------------
 @Composable
 fun RefereeCard(name: String, price: String) {
@@ -203,9 +195,7 @@ fun RefereeCard(name: String, price: String) {
             .height(80.dp),
         shape = RoundedCornerShape(20.dp),
         border = BorderStroke(2.dp, BlueDark),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White
-        )
+        colors = CardDefaults.cardColors(containerColor = Color.White)
     ) {
         Row(
             modifier = Modifier
@@ -214,6 +204,7 @@ fun RefereeCard(name: String, price: String) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // Círculo con inicial
             Box(
                 modifier = Modifier
                     .size(45.dp)
@@ -222,26 +213,37 @@ fun RefereeCard(name: String, price: String) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "A",
+                    text = name.firstOrNull()?.uppercase() ?: "A",
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
             }
 
+            // Nombre del Árbitro
             Text(
                 text = name,
-                fontSize = 18.sp,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
-                modifier = Modifier.weight(1f)
-                    .padding(horizontal = 10.dp),
-                color = BlueDark
+                modifier = Modifier.weight(1f).padding(horizontal = 10.dp),
+                color = BlueDark,
+                maxLines = 1 // Para que no se deforme si el nombre es muy largo
             )
 
+            // Lógica inteligente para el Precio
+            val textoPrecio = when {
+                price == "Pendiente" || price == "Precio pendiente" -> "Pendiente"
+                price.contains("$") -> price // Ya tiene signo
+                else -> "$$price" // Le agregamos signo
+            }
+
+            // Color del precio: Rojo si es dinero, Gris si es Pendiente
+            val colorPrecio = if (textoPrecio == "Pendiente") Color.Gray else RedAccent
+
             Text(
-                text = if(price.contains("$")) price else "$price$", // Pequeño ajuste por si no trae el signo
-                fontSize = 18.sp,
+                text = textoPrecio,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
-                color = RedAccent
+                color = colorPrecio
             )
         }
     }

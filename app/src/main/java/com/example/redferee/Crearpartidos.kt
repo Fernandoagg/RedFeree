@@ -1,5 +1,6 @@
 package com.example.redferee
 
+import android.app.Activity
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -7,12 +8,14 @@ import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -59,49 +62,83 @@ val ColorVerdeHeader = Color(0xFFE0F2F1)
 val ColorAzulAnalytics = Color(0xFF4A90E2)
 
 // ==========================================
-// PANTALLA 1: LISTA
+// PANTALLA 1: LISTA (MODIFICADA ALTURA)
 // ==========================================
 @Composable
 fun ListaArbitrosScreen(navController: NavController) {
-    // Estado para la lista
-    var listaDeEquipos by remember { mutableStateOf<List<EquipoArbitro>>(emptyList()) }
+    var listaOriginal by remember { mutableStateOf<List<EquipoArbitro>>(emptyList()) }
+    var listaVisible by remember { mutableStateOf<List<EquipoArbitro>>(emptyList()) }
+    val context = LocalContext.current
 
-    // Carga de datos usando NUESTRO CLIENTE MAESTRO
     LaunchedEffect(Unit) {
         try {
-            // AQUÍ EL CAMBIO IMPORTANTE: Usamos apiService
-            listaDeEquipos = RetrofitClient.apiService.obtenerListaEquipos()
+            listaOriginal = RetrofitClient.apiService.obtenerListaEquipos()
+            listaVisible = listaOriginal
         } catch (e: Exception) {
             println("Error cargando datos: ${e.message}")
         }
     }
 
-    Scaffold(bottomBar = { BottomNavigationBarPartidos() }) { padding ->
+    Scaffold { padding ->
         Box(modifier = Modifier.fillMaxSize().background(ColorFondoClarito).padding(padding)) {
             Column(modifier = Modifier.fillMaxSize()) {
-                Box(modifier = Modifier.fillMaxWidth().height(260.dp)) {
+                
+                // --- HEADER ---
+                // CAMBIO AQUÍ: Reducimos la altura de 260dp a 210dp
+                Box(modifier = Modifier.fillMaxWidth().height(210.dp)) {
                     HeaderBackground()
+                    
+                    // FLECHA DE REGRESO
+                    IconButton(
+                        onClick = { (context as? Activity)?.finish() },
+                        modifier = Modifier
+                            .padding(top = 40.dp, start = 16.dp)
+                            .align(Alignment.TopStart)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack, 
+                            contentDescription = "Volver",
+                            tint = ColorBotonOscuro
+                        )
+                    }
+
                     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-                        Spacer(modifier = Modifier.height(32.dp))
+                        Spacer(modifier = Modifier.height(60.dp)) // Espacio para la flecha
                         Text(
                             "Contratación de equipos completos de árbitros",
-                            fontSize = 26.sp,
-                            lineHeight = 32.sp,
-                            modifier = Modifier.padding(bottom = 20.dp)
+                            fontSize = 24.sp, // Reduje un poco la fuente también
+                            lineHeight = 28.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 16.dp)
                         )
+                        
+                        // Botones de ordenar
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            FilterButton("Ordenar por: Precio", Modifier.weight(1f))
-                            FilterButton("Ordenar por: Calificacion", Modifier.weight(1f))
+                            FilterButton(
+                                text = "Ordenar por: Precio", 
+                                modifier = Modifier.weight(1f).clickable {
+                                    listaVisible = listaOriginal.sortedBy { 
+                                        it.precio.replace(Regex("[^0-9.]"), "").toDoubleOrNull() ?: 0.0 
+                                    }
+                                }
+                            )
+                            FilterButton(
+                                text = "Ordenar por: Calif.", 
+                                modifier = Modifier.weight(1f).clickable {
+                                    listaVisible = listaOriginal.sortedByDescending { it.reseñasCount }
+                                }
+                            )
                         }
                     }
                 }
 
-                // Muestra la lista
+                // LISTA SCROLLABLE
                 LazyColumn(
                     contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    modifier = Modifier.weight(1f) 
                 ) {
-                    items(listaDeEquipos) { equipo ->
+                    items(listaVisible) { equipo ->
                         RefereeCard(equipo, navController)
                     }
                 }
@@ -118,7 +155,15 @@ fun RefereeCard(equipo: EquipoArbitro, navController: NavController) {
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(modifier = Modifier.padding(16.dp)) {
-            Surface(modifier = Modifier.size(60.dp), shape = CircleShape, color = Color.LightGray) {}
+            Surface(modifier = Modifier.size(60.dp), shape = CircleShape, color = Color.LightGray) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = equipo.nombre.firstOrNull()?.uppercase() ?: "A",
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                }
+            }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(equipo.nombre, fontWeight = FontWeight.Bold, fontSize = 16.sp)
@@ -147,7 +192,7 @@ fun RefereeCard(equipo: EquipoArbitro, navController: NavController) {
 }
 
 // ==========================================
-// PANTALLA 2: AGENDAR (CON POST)
+// PANTALLA 2: AGENDAR
 // ==========================================
 @Composable
 fun AgendarScreen(navController: NavController) {
@@ -155,25 +200,22 @@ fun AgendarScreen(navController: NavController) {
     var arbitroSeleccionado by remember { mutableStateOf<EquipoArbitro?>(null) }
     var deporteSeleccionado by remember { mutableStateOf("") }
     var mostrarDialogo by remember { mutableStateOf(false) }
-
     var estaGuardando by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        try { 
-            listaArbitrosReales = RetrofitClient.apiService.obtenerListaEquipos() 
-        } catch (e: Exception) {}
+        try { listaArbitrosReales = RetrofitClient.apiService.obtenerListaEquipos() } catch (e: Exception) {}
     }
 
     Scaffold(containerColor = ColorFondoClarito) { padding ->
         Box(modifier = Modifier.fillMaxSize().padding(padding)) {
-            HeaderBackground()
+            HeaderBackground() // Este usará el tamaño por defecto (grande) en esta pantalla, está bien.
             IconButton(
                 onClick = { navController.popBackStack() },
                 modifier = Modifier.padding(top = 40.dp, start = 16.dp).align(Alignment.TopStart)
             ) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Volver")
             }
 
             Column(
@@ -230,7 +272,6 @@ fun AgendarScreen(navController: NavController) {
                                         deporte = deporteSeleccionado,
                                         precio = arbitroSeleccionado!!.precio
                                     )
-                                    // CAMBIO IMPORTANTE: Usamos apiService
                                     RetrofitClient.apiService.guardarPartido(nuevoPartido)
                                     estaGuardando = false
                                     mostrarDialogo = true
@@ -263,9 +304,12 @@ fun AgendarScreen(navController: NavController) {
 }
 
 // --- COMPONENTES COMPARTIDOS ---
+
+// CAMBIO IMPORTANTE AQUÍ: Se eliminó la altura fija.
 @Composable
 fun HeaderBackground() {
-    Box(modifier = Modifier.fillMaxWidth().height(300.dp)) {
+    // Ahora llena el espacio que le de el padre
+    Box(modifier = Modifier.fillMaxSize()) {
         Canvas(modifier = Modifier.fillMaxSize()) {
             drawRect(color = ColorVerdeHeader)
             drawCircle(color = Color(0xFFB2DFDB), radius = size.width * 0.6f, center = Offset(0f, 0f))
@@ -288,25 +332,6 @@ fun FilterButton(text: String, modifier: Modifier = Modifier) {
         contentAlignment = Alignment.Center
     ) {
         Text(text, color = Color.Gray, fontSize = 12.sp)
-    }
-}
-
-@Composable
-fun BottomNavigationBarPartidos() {
-    NavigationBar(containerColor = Color.White) {
-        NavigationBarItem(icon = { Icon(Icons.Default.Home, "") }, selected = false, onClick = {})
-        NavigationBarItem(icon = { Icon(Icons.Default.Search, "") }, selected = false, onClick = {})
-        NavigationBarItem(
-            icon = { Icon(Icons.Default.List, "") },
-            selected = true,
-            onClick = {},
-            colors = NavigationBarItemDefaults.colors(
-                selectedIconColor = ColorAzulAnalytics,
-                indicatorColor = Color.White
-            )
-        )
-        NavigationBarItem(icon = { Icon(Icons.Default.DateRange, "") }, selected = false, onClick = {})
-        NavigationBarItem(icon = { Icon(Icons.Default.Person, "") }, selected = false, onClick = {})
     }
 }
 
@@ -379,9 +404,6 @@ fun ConfirmacionDialog(nombre: String, onDismiss: () -> Unit) {
     )
 }
 
-// ==========================================
-// VISTAS PREVIAS
-// ==========================================
 @Preview(showBackground = true, name = "1. Pantalla Lista")
 @Composable
 fun ListaArbitrosScreenPreview() {

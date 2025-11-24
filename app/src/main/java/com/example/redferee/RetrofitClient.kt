@@ -11,7 +11,7 @@ import retrofit2.http.Query
 interface ApiService {
 
     // --- HISTORIAL ---
-    @GET("api/partidos") // <--- CORREGIDO (con api/)
+    @GET("api/partidos")
     suspend fun obtenerPartidos(): List<PartidoBackend>
 
     // --- RESEÑAS ---
