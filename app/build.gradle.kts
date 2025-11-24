@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.redferee"
-    compileSdk = 34
+    compileSdk = 34 // Mantenemos 34 (Estable)
 
     defaultConfig {
         applicationId = "com.example.redferee"
@@ -21,6 +21,25 @@ android {
         }
     }
 
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+    
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = "1.8"
+    }
+    
     buildFeatures {
         compose = true
     }
@@ -29,9 +48,6 @@ android {
         kotlinCompilerExtensionVersion = "1.5.14"
     }
 
-    kotlinOptions {
-        jvmTarget = "1.8"
-    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -41,7 +57,6 @@ android {
 
 dependencies {
     // --- BOM (Bill of Materials) ---
-    // Esto controla que todas las versiones de Compose sean compatibles entre sí
     implementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(platform(libs.androidx.compose.bom))
 
@@ -57,15 +72,15 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
 
-    // --- UI CLÁSICA (XML/Views) - De tu rama HEAD ---
+    // --- UI CLÁSICA (XML/Views) ---
     implementation(libs.androidx.appcompat)
     implementation(libs.material)
     implementation(libs.androidx.constraintlayout)
 
-    // --- NAVEGACIÓN (Compose) ---
+    // --- NAVEGACIÓN ---
     implementation(libs.androidx.navigation.compose)
 
-    // --- RED Y API (Retrofit) - De la rama F4 ---
+    // --- RED Y API (Retrofit) ---
     implementation(libs.retrofit)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.kotlinx.coroutines.android)
