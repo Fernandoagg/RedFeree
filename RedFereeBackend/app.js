@@ -1,25 +1,27 @@
 const express = require("express");
 const cors = require("cors");
-const db = require("./config/db");
+const db = require("./config/db"); // Asegúrate de que este archivo exista
 
 const app = express();
 
-// --- 1. MIDDLEWARES (PRIMERO QUE NADA) ---
-// Estas dos líneas son OBLIGATORIAS antes de las rutas para poder leer datos
+// --- 1. MIDDLEWARES ---
 app.use(cors());
 app.use(express.json()); 
 
-// --- 2. IMPORTAR RUTAS ---
+// --- 2. RUTAS ---
+// Rutas importadas (Estilo HEAD - más ordenado)
 const partidosRoutes = require('./routes/partidos');
 const listaArbitrosRoutes = require('./routes/listaArbitros');
-// (Aquí irían tus otras rutas de usuarios si las tienes)
 
 // --- 3. USAR RUTAS ---
+// Aquí unimos lo que tenías tú con lo que venía de la otra rama
 app.use('/api/partidos', partidosRoutes);
 app.use('/api/lista-arbitros', listaArbitrosRoutes);
-app.use('/api/usuarios', require("./routes/usuarios")); // Si tenías esta
 
-// --- 4. ENCENDER SERVIDOR (AL FINAL) ---
+// La ruta de usuarios estaba en ambas versiones, la dejamos activa
+app.use('/api/usuarios', require("./routes/usuarios")); 
+
+// --- 4. ENCENDER SERVIDOR ---
 app.listen(3000, () => {
     console.log("Servidor corriendo en puerto 3000");
 });

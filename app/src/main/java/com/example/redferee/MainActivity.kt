@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.redferee.ui.theme.RedFereeTheme
 import androidx.compose.ui.tooling.preview.Preview
+import android.content.Intent
+import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -118,6 +121,8 @@ fun SectionTitle(title: String) {
 
 @Composable
 fun QuickAccessCards() {
+    val context = LocalContext.current
+
     Row(modifier = Modifier.fillMaxWidth()) {
 
         Card(
@@ -140,6 +145,10 @@ fun QuickAccessCards() {
                 .weight(1f)
                 .height(150.dp)
                 .padding(4.dp)
+                .clickable {
+                    val intent = Intent(context, HistorialPartidosActivity::class.java)
+                    context.startActivity(intent)
+                }
         ) {
             Column(
                 modifier = Modifier.padding(12.dp),
@@ -151,6 +160,7 @@ fun QuickAccessCards() {
         }
     }
 }
+
 
 @Composable
 fun HighlightedRefereesCard() {
