@@ -1,10 +1,12 @@
 const express = require('express');
 const router = express.Router();
-//<<<<<<< HEAD
+// Dejamos solo una importación de la base de datos
 const db = require('../config/db');
 
-// Ruta POST: http://localhost:3000/api/partidos
-// Esta ruta RECIBE datos y los guarda
+// ==========================================
+// RUTA 1: AGENDAR PARTIDO (POST) - (Tu código)
+// URL: http://localhost:3000/api/partidos
+// ==========================================
 router.post('/', (req, res) => {
     const { nombreArbitro, deporte, precio } = req.body;
 
@@ -19,14 +21,13 @@ router.post('/', (req, res) => {
     });
 });
 
-//=======
-const db = require('../config/db'); // Asegúrate de que esta ruta sea correcta según tu estructura
-
-// GET: Obtener todos los partidos
-// Ruta final: http://localhost:3000/api/partidos
+// ==========================================
+// RUTA 2: VER HISTORIAL (GET) - (Código del compañero)
+// URL: http://localhost:3000/api/partidos
+// ==========================================
 router.get('/', (req, res) => {
-    // Hacemos un JOIN básico para intentar sacar el nombre del árbitro si existe
-    // Si tu tabla de usuarios tiene 'nombre', esto funcionará.
+    // OJO: Tu compañero está haciendo un JOIN con 'arbitroId'.
+    // Asegúrate de que tu tabla 'partidos' tenga esa columna o si usa 'arbitro_nombre'.
     const sql = `
         SELECT p.*, u.nombre as nombreArbitro 
         FROM partidos p 
@@ -42,6 +43,5 @@ router.get('/', (req, res) => {
     });
 });
 
-// --- ESTA ES LA LÍNEA QUE TE FALTABA ---
-//>>>>>>> c55b8a2e389b5f9856dab1b3051afb6be445684c
+// Importante: Esto siempre va al final
 module.exports = router;
