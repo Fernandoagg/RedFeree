@@ -8,17 +8,21 @@ const app = express();
 app.use(cors());
 app.use(express.json()); 
 
-// --- 2. RUTAS ---
-// Rutas importadas (Estilo HEAD - más ordenado)
+// --- 2. IMPORTAR RUTAS ---
+// Rutas que ya tenías (HEAD)
 const partidosRoutes = require('./routes/partidos');
 const listaArbitrosRoutes = require('./routes/listaArbitros');
 
 // --- 3. USAR RUTAS ---
-// Aquí unimos lo que tenías tú con lo que venía de la otra rama
+// Rutas antiguas
 app.use('/api/partidos', partidosRoutes);
 app.use('/api/lista-arbitros', listaArbitrosRoutes);
 
-// La ruta de usuarios estaba en ambas versiones, la dejamos activa
+// Rutas nuevas (que venían de F4-Resenas)
+app.use("/api/resenas", require("./routes/resenas"));
+app.use("/api/arbitros", require("./routes/arbitros"));
+
+// Ruta común (estaba en ambas, dejamos solo una)
 app.use('/api/usuarios', require("./routes/usuarios")); 
 
 // --- 4. ENCENDER SERVIDOR ---
