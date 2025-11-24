@@ -1,5 +1,6 @@
 package com.example.redferee
 
+import android.content.Intent // Importante para navegar
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext // Importante para el contexto
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -30,9 +32,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.redferee.ui.theme.RedFereeTheme
-// --- IMPORTS NECESARIOS PARA NAVEGACIÓN NATIVA (Historial) ---
-import android.content.Intent
-import androidx.compose.ui.platform.LocalContext
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,7 +62,6 @@ fun AppNavigation(navController: NavHostController) {
         // RUTA 2: PANTALLA DE RESEÑAS (LISTA)
         composable("reviews") {
             // Llamamos a ReviewsScreen (que está en CalisRese.kt)
-            // Asegúrate de tener ese archivo o cambia el nombre aquí si es necesario
             ReviewsScreen(
                 onBack = { navController.popBackStack() },
                 onWriteReview = { navController.navigate("write_review") }
@@ -203,11 +201,17 @@ fun QuickAccessCards() {
 
     Row(modifier = Modifier.fillMaxWidth()) {
 
+        // --- TARJETA 1: CREAR PARTIDO (AHORA CON CLICK) ---
         Card(
             modifier = Modifier
                 .weight(1f)
                 .height(150.dp)
-                .padding(4.dp),
+                .padding(4.dp)
+                .clickable {
+                    // Aquí lanzamos la actividad de tu compañero
+                    val intent = Intent(context, Crearpartidos::class.java)
+                    context.startActivity(intent)
+                },
             colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
         ) {
             Column(
@@ -219,18 +223,17 @@ fun QuickAccessCards() {
             }
         }
 
-        // --- TARJETA HISTORIAL (FUSIONADA) ---
+        // --- TARJETA 2: HISTORIAL ---
         Card(
             modifier = Modifier
                 .weight(1f)
                 .height(150.dp)
                 .padding(4.dp)
-                // Aquí mantenemos tu lógica de click para ir al Historial
                 .clickable {
                     val intent = Intent(context, HistorialPartidosActivity::class.java)
                     context.startActivity(intent)
                 },
-            // Y mantenemos el color de fondo que traía la otra rama
+            // Mantenemos el color de fondo
             colors = CardDefaults.cardColors(containerColor = Color(0xFFF5F5F5))
         ) {
             Column(

@@ -1,4 +1,4 @@
-package com.example.reedfere
+package com.example.redferee
 
 import android.os.Bundle
 import android.widget.Toast
@@ -22,7 +22,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview // <--- IMPORTANTE: Necesario para @Preview
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -30,66 +30,25 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import retrofit2.http.Body
-import retrofit2.http.GET
-import retrofit2.http.POST
 
 class Crearpartidos : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MaterialTheme {
-                AppNavigation()
+                AppNavigationCrearPartido()
             }
         }
     }
 }
 
-// --- NAVEGACIÓN ---
+// --- NAVEGACIÓN LOCAL ---
 @Composable
-fun AppNavigation() {
+fun AppNavigationCrearPartido() {
     val navController = rememberNavController()
     NavHost(navController = navController, startDestination = "lista") {
         composable("lista") { ListaArbitrosScreen(navController) }
         composable("agendar") { AgendarScreen(navController) }
-    }
-}
-
-// --- MODELOS DE DATOS ---
-data class EquipoArbitro(
-    val id: Int,
-    val nombre: String,
-    val lider: String?,
-    val reseñasCount: Int = 0,
-    val precio: String
-)
-
-data class PartidoRequest(
-    val nombreArbitro: String,
-    val deporte: String,
-    val precio: String
-)
-
-// --- API RETROFIT ---
-interface ApiService {
-    @GET("api/lista-arbitros")
-    suspend fun obtenerArbitros(): List<EquipoArbitro>
-
-    @POST("api/partidos")
-    suspend fun guardarPartido(@Body request: PartidoRequest): Any
-}
-
-object RetrofitClient {
-    // NOTA: Para emulador usa 10.0.2.2, para dispositivo físico usa tu IP local (ej. 192.168.1.X)
-    private const val BASE_URL = "http://10.0.2.2:3000/"
-    val api: ApiService by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(ApiService::class.java)
     }
 }
 
@@ -107,17 +66,17 @@ fun ListaArbitrosScreen(navController: NavController) {
     // Estado para la lista
     var listaDeEquipos by remember { mutableStateOf<List<EquipoArbitro>>(emptyList()) }
 
-    // Carga de datos (Solo se ejecuta si NO estamos en modo Preview o si hay red)
+    // Carga de datos usando NUESTRO CLIENTE MAESTRO
     LaunchedEffect(Unit) {
         try {
-            listaDeEquipos = RetrofitClient.api.obtenerArbitros()
+            // AQUÍ EL CAMBIO IMPORTANTE: Usamos apiService
+            listaDeEquipos = RetrofitClient.apiService.obtenerListaEquipos()
         } catch (e: Exception) {
-            // Manejo de error silencioso para el ejemplo
             println("Error cargando datos: ${e.message}")
         }
     }
 
-    Scaffold(bottomBar = { BottomNavigationBar() }) { padding ->
+    Scaffold(bottomBar = { BottomNavigationBarPartidos() }) { padding ->
         Box(modifier = Modifier.fillMaxSize().background(ColorFondoClarito).padding(padding)) {
             Column(modifier = Modifier.fillMaxSize()) {
                 Box(modifier = Modifier.fillMaxWidth().height(260.dp)) {
@@ -202,7 +161,9 @@ fun AgendarScreen(navController: NavController) {
     val context = LocalContext.current
 
     LaunchedEffect(Unit) {
-        try { listaArbitrosReales = RetrofitClient.api.obtenerArbitros() } catch (e: Exception) {}
+        try { 
+            listaArbitrosReales = RetrofitClient.apiService.obtenerListaEquipos() 
+        } catch (e: Exception) {}
     }
 
     Scaffold(containerColor = ColorFondoClarito) { padding ->
@@ -269,7 +230,8 @@ fun AgendarScreen(navController: NavController) {
                                         deporte = deporteSeleccionado,
                                         precio = arbitroSeleccionado!!.precio
                                     )
-                                    RetrofitClient.api.guardarPartido(nuevoPartido)
+                                    // CAMBIO IMPORTANTE: Usamos apiService
+                                    RetrofitClient.apiService.guardarPartido(nuevoPartido)
                                     estaGuardando = false
                                     mostrarDialogo = true
                                 } catch (e: Exception) {
@@ -330,7 +292,7 @@ fun FilterButton(text: String, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun BottomNavigationBar() {
+fun BottomNavigationBarPartidos() {
     NavigationBar(containerColor = Color.White) {
         NavigationBarItem(icon = { Icon(Icons.Default.Home, "") }, selected = false, onClick = {})
         NavigationBarItem(icon = { Icon(Icons.Default.Search, "") }, selected = false, onClick = {})
@@ -418,43 +380,11 @@ fun ConfirmacionDialog(nombre: String, onDismiss: () -> Unit) {
 }
 
 // ==========================================
-// VISTAS PREVIAS (PREVIEWS) - NUEVO CÓDIGO
+// VISTAS PREVIAS
 // ==========================================
-
-// 1. Vista Previa de la Pantalla Principal
 @Preview(showBackground = true, name = "1. Pantalla Lista")
 @Composable
 fun ListaArbitrosScreenPreview() {
-    // Usamos un NavController falso para que no falle la previsualización
     val navController = rememberNavController()
-    // Nota: La lista saldrá vacía porque no hay internet en la vista previa
     ListaArbitrosScreen(navController)
-}
-
-// 2. Vista Previa de UNA Tarjeta (Con datos falsos para ver el diseño)
-@Preview(showBackground = true, name = "2. Tarjeta Individual")
-@Composable
-fun RefereeCardPreview() {
-    val navController = rememberNavController()
-    // Creamos datos dummy para que la tarjeta se vea llena
-    val dummyData = EquipoArbitro(
-        id = 1,
-        nombre = "Árbitros Elite FC",
-        lider = "Carlos Ruiz",
-        reseñasCount = 24,
-        precio = "$850"
-    )
-
-    // Envolvemos en un Box con padding para que se vea bien
-    Box(modifier = Modifier.padding(10.dp)) {
-        RefereeCard(equipo = dummyData, navController = navController)
-    }
-}
-
-// 3. Vista Previa de la Pantalla de Agendar
-@Preview(showBackground = true, name = "3. Pantalla Agendar")
-@Composable
-fun AgendarScreenPreview() {
-    val navController = rememberNavController()
-    AgendarScreen(navController)
 }

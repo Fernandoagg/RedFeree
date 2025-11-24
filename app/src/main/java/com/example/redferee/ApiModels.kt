@@ -3,7 +3,7 @@ package com.example.redferee
 import com.google.gson.annotations.SerializedName
 
 // ==========================================
-// MODELOS DE HISTORIAL (Rama F3)
+// 1. MODELOS DE HISTORIAL (F3)
 // ==========================================
 data class PartidoBackend(
     val id: Int,
@@ -15,10 +15,8 @@ data class PartidoBackend(
 )
 
 // ==========================================
-// MODELOS DE RESEÑAS (Rama F4)
+// 2. MODELOS DE RESEÑAS (F4)
 // ==========================================
-
-// 1. Para recibir reseñas
 data class Review(
     val NombreArbi: String,
     val Cali: Int,
@@ -27,13 +25,11 @@ data class Review(
     val tiempo: String
 )
 
-// 2. Para recibir la lista de árbitros
 data class Referee(
     @SerializedName("id") val id: Int,
     @SerializedName("nombre") val nombre: String
 )
 
-// 3. Para enviar una nueva reseña
 data class ReviewRequest(
     @SerializedName("arbitroid") val arbitroid: Int,
     @SerializedName("usuarioid") val usuarioid: Int,
@@ -41,16 +37,37 @@ data class ReviewRequest(
     @SerializedName("texto") val texto: String
 )
 
-// 4. Respuesta del servidor al subir reseña
 data class PostResponse(
     val status: String,
     val message: String,
     val id_insertado: Int? = null
 )
 
-// 5. Contenedor de la respuesta de reseñas
 data class ApiResponse(
     val status: String,
     val count: Int,
     val reviews: List<Review>
+)
+
+// ==========================================
+// 3. MODELOS DE CREAR PARTIDO (F2 - NUEVO)
+// ==========================================
+data class EquipoArbitro(
+    val id: Int,
+    val nombre: String,
+    val lider: String?,
+    val reseñasCount: Int = 0,
+    val precio: String
+)
+
+data class PartidoRequest(
+    val nombreArbitro: String,
+    val deporte: String,
+    val precio: String
+)
+
+// Respuesta al agendar (Backend devuelve message e id)
+data class PartidoResponse(
+    val message: String,
+    val id: Int
 )

@@ -8,32 +8,34 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 
-// --- 1. INTERFAZ CON TODAS LAS RUTAS (Endpoints) ---
 interface ApiService {
 
-    // --- RUTAS DE HISTORIAL ---
-    @GET("partidos")
+    // --- HISTORIAL ---
+    @GET("api/partidos") // <--- CORREGIDO (con api/)
     suspend fun obtenerPartidos(): List<PartidoBackend>
 
-    // --- RUTAS DE RESEÑAS ---
-    // Nota: Ya no ponemos "api/" al principio porque la BASE_URL ya lo tiene.
-    
-    @GET("resenas/visualizar")
-    suspend fun getReviews(
-        @Query("arbitroid") refereeId: String? = null
-    ): Response<ApiResponse>
+    // --- RESEÑAS ---
+    @GET("api/resenas/visualizar")
+    suspend fun getReviews(@Query("arbitroid") refereeId: String? = null): Response<ApiResponse>
 
-    @GET("arbitros/desplegar")
+    @GET("api/arbitros/desplegar")
     suspend fun getReferees(): Response<List<Referee>>
 
-    @POST("resenas/calificar")
+    @POST("api/resenas/calificar")
     suspend fun submitReview(@Body request: ReviewRequest): Response<PostResponse>
+
+    // --- CREAR PARTIDO (NUEVO - F2) ---
+    // Nota: Ajusta la ruta si tu backend no usa "api/"
+    @GET("api/lista-arbitros")
+    suspend fun obtenerListaEquipos(): List<EquipoArbitro>
+
+    @POST("api/partidos")
+    suspend fun guardarPartido(@Body request: PartidoRequest): PartidoResponse
 }
 
-// --- 2. OBJETO DE CONEXIÓN ÚNICO ---
 object RetrofitClient {
     // Apunta a tu servidor local
-    private const val BASE_URL = "http://10.0.2.2:3000/api/"
+    private const val BASE_URL = "http://10.0.2.2:3000/"
 
     val apiService: ApiService by lazy {
         Retrofit.Builder()
