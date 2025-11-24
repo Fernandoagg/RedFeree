@@ -68,6 +68,7 @@ dependencies {
 
     // --- CORRUTINAS ---
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("androidx.compose.material:material-icons-extended:1.7.5")
 
     // --- TESTING ---
     testImplementation(libs.junit)

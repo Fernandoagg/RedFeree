@@ -73,6 +73,23 @@ fun AppNavigation(navController: NavHostController) {
                 onBack = { navController.popBackStack() }
             )
         }
+        composable("register") {
+            // Llamamos a WriteReviewScreen (que está en WriteReviewScreen.kt)
+            RegisterScreen(
+                onBack = { navController.popBackStack() }
+            )
+
+        }
+        composable("login") {
+            LoginScreen(
+                navController = navController,
+                onBack = { navController.popBackStack() },
+                onLoginSuccess = { navController.navigate("main")}
+            )
+        }
+
+
+
     }
 }
 
@@ -108,10 +125,10 @@ fun MainScreen(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
+                .padding(35.dp)
                 .verticalScroll(rememberScrollState())
         ) {
-            TopBar()
+            TopBar({navController.navigate("login")})
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -146,7 +163,7 @@ fun MainScreen(navController: NavController) {
 // --- COMPONENTES VISUALES ---
 
 @Composable
-fun TopBar() {
+fun TopBar(onClick: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -159,11 +176,24 @@ fun TopBar() {
             color = Color.Black // Aseguramos contraste sobre el fondo claro
         )
 
-        Row {
-            Icon(imageVector = Icons.Default.Person, contentDescription = "Perfil", tint = Color.Black)
-            Spacer(modifier = Modifier.width(12.dp))
-            Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notificaciones", tint = Color.Black)
+
+        Card(
+            modifier = Modifier
+                .clickable(onClick = onClick),
+            colors = CardDefaults.cardColors(containerColor = Color(0xFFE8EAF6)) // Un azul muy suave
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.width(100.dp)
+            ) {
+                Row {
+                    Icon(imageVector = Icons.Default.Person, contentDescription = "Perfil", tint = Color.Black)
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Icon(imageVector = Icons.Default.Notifications, contentDescription = "Notificaciones", tint = Color.Black)
+                }
+            }
         }
+
     }
 }
 
